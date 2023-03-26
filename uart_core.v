@@ -183,7 +183,7 @@ sync_fifo #(
     .rst_n(rst_n_sync),
     .w_en(rxfifo_wen),
     .w_data(rx_shifter),
-    .r_en(rxfifo_ren_ext),
+    .r_en(rxfifo_ren_ext && !rx_fifo_empty),
     .r_data(rx_byte),
     .full(rx_fifo_full),
     .empty(rx_fifo_empty),

@@ -50,7 +50,7 @@ reg [7:0] tx_byte;
 wire [7:0] rx_byte;
 reg tx_valid;
 
-wire read_reg = (rx_byte[7:5] == 3'b101);
+wire read_reg = !(rx_byte[7:5] == 3'b101);
 
 reg [2:0] cnt_byte;
 reg [31:0] temp_wdata;
@@ -108,6 +108,7 @@ always @(posedge clk or negedge rst_n_sync) begin
                     end
                     else begin
                         state <= WRITE_REG;
+                        // rx_ren <= 1'b1;
                         temp_wdata <= 32'b0;
                     end
                 end
@@ -141,13 +142,15 @@ always @(posedge clk or negedge rst_n_sync) begin
             end
 
             WRITE_REG: begin
-                if(cnt_byte != 3'd3) begin
+                if(cnt_byte != 3'd5) begin
                     if(rx_irq) begin
-                        rx_ren <= 1;
-                        temp_wdata <= temp_wdata | (rx_byte << (1 << cnt_byte));
+                        rx_ren <= 1'b1;
                         cnt_byte <= cnt_byte + 1;
+                        if(cnt_byte != 3'd0)
+                            temp_wdata <= temp_wdata | (rx_byte << ((cnt_byte - 1) << 3));
+
                     end else begin
-                        rx_ren <= 0;
+                        rx_ren <= 1'b1;
                     end
                     state <= WRITE_REG;
                 end else begin

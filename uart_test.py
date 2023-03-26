@@ -111,16 +111,26 @@ async def uart_regtest(dut):
     await RisingEdge(dut.clk)
 
     await test_rx_byte(dut.rx, 0b10100111)
-    # await test_rx_byte(dut.rx, 0b11110000)
-    # await test_rx_byte(dut.rx, 0b11110000)
-    # await test_rx_byte(dut.rx, 0b00001111)
-    # await test_rx_byte(dut.rx, 0b00001111)
+    await test_rx_byte(dut.rx, 0x12)
+    await test_rx_byte(dut.rx, 0x34)
+    await test_rx_byte(dut.rx, 0x56)
+    await test_rx_byte(dut.rx, 0x78)
     for _ in range(48):
         await baud_t
         await baud_t
 
     await baud_t
     await baud_t
+
+    await test_rx_byte(dut.rx, 0b00000111)
+    for _ in range(48):
+        await baud_t
+        await baud_t
+    
+    await baud_t
+    await baud_t
+
+
 
 
 
