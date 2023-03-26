@@ -16,7 +16,10 @@ module uart_core #(
     output reg [7:0] rx_byte,
     input wire tx_valid,
     output wire rx_valid,
-    output wire tx_done
+    output wire tx_done,
+    input wire rxfifo_ren_ext,
+    output wire rx_irq
+
 
 );
 
@@ -39,7 +42,7 @@ sync_1bit inst_sync_rx(
     .o(rx_sync)
 );
 
-localparam W_OVER = $clog2(OVERSAMPLE + 1);
+localparam W_OVER = $clog2(OVERSAMPLE);
 
 reg [W_OVER-1:0] tx_over_ctr;
 reg [3:0] tx_state;
@@ -163,9 +166,30 @@ reg rxfifo_wen;
 wire din = rx_sync;
 assign rx_valid = (rx_state == (RX_STOP));
 
+wire rx_fifo_full;
+wire rx_fifo_lvl;
+wire rx_fifo_empty;
+
 localparam RX_IDLE = 0;
 localparam RX_START = 1;
 localparam RX_STOP = 10;
+
+sync_fifo #(
+    .WIDTH (8),
+    .DEPTH (2)
+) inst_rx_fifo (
+    .clk(clk),
+    .rst_n(rst_n_sync),
+    .w_en(rxfifo_wen),
+    .w_data(rx_shifter),
+    .r_en(rxfifo_ren_ext),
+    .r_data(rx_byte),
+    .full(rx_fifo_full),
+    .empty(rx_fifo_empty),
+    .level(rx_fifo_lvl)
+);
+
+assign rx_irq = !rx_fifo_empty;
 
 always @(posedge clk or negedge rst_n_sync) begin
 
@@ -385,81 +409,3 @@ module sync_fifo #(
 
 
 endmodule
-
-
-
-// module tb();
-
-//     reg [9:0] div_int;
-//     reg [3:0] div_frac;
-//     reg clk;
-//     reg rx;
-//     wire tx;
-
-//     reg rst_n;
-//     reg [7:0] tx_byte;
-//     wire [7:0] rx_byte;
-
-//     reg tx_valid;
-//     wire rx_valid;
-//     wire tx_done;
-
-//     initial begin
-//         clk <= 0;
-//         $dumpfile("uart_test.vcd");
-//         $dumpvars(0, tb);
-//     end
-
-//     uart_core #(
-//         .OVERSAMPLE (4)
-//     ) dut (
-//         .clk(clk),
-//         .rst_n(rst_n),
-//         .tx(tx),
-//         .tx_byte(tx_byte),
-//         .rx(rx),
-//         .rx_byte(rx_byte),
-//         .div_frac(div_frac),
-//         .div_int(div_int),
-//         .tx_valid(tx_valid),
-//         .tx_done(tx_done),
-//         .rx_valid(rx_valid)
-//     );
-
-//     always #1 clk <= ~clk;
-
-//     initial begin
-//         div_int <= 2;
-//         div_frac <= 0;
-//         rst_n <= 1;
-//         tx_valid <= 0;
-//         tx_byte <= 0;
-//     end
-
-//     initial begin
-//         rx <= 1; 
-//         #1 rst_n <= 0;
-//         #3 rst_n <= 1;
-//         #10 rx <= 1;
-//         // #4 tx_valid <= 1;
-//         // tx_byte <= 8'b00101010;
-//         // #2 tx_valid <= 0;
-//         // tx_byte <= 0;
-//         #4 rx <= 0;
-//         #32 rx <= 1;
-//         #32 rx <= 1;
-//         #32 rx <= 1;
-//         #32 rx <= 1;
-//         #32 rx <= 0;
-//         #32 rx <= 0;
-//         #32 rx <= 0;
-//         #32 rx <= 0;
-//         #32 rx <= 1;
-
-//         #300 $finish;
-//     end
-
-
-
-
-// endmodule

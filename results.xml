@@ -1,6 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1679828148" />
-    <testcase name="uart_test" classname="uart_test" file="/home/devector/Documents/uart-reg/uart_regs/uart_test.py" lineno="22" time="0.02496194839477539" sim_time_ns="17500.001" ratio_time="701067.1091549409" />
+    <property name="random_seed" value="1679832779" />
+    <testcase name="uart_test" classname="uart_test" file="/home/devector/Documents/uart-reg/uart_regs/uart_test.py" lineno="69" time="0.021888256072998047" sim_time_ns="17400.001" ratio_time="794946.8857624121" />
   </testsuite>
 </testsuites>
