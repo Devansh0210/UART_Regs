@@ -13,7 +13,7 @@ module uart_core #(
     input wire [3:0] div_frac,
 
     input wire [7:0] tx_byte,
-    output reg [7:0] rx_byte,
+    output [7:0] rx_byte,
     input wire tx_valid,
     output wire rx_valid,
     output wire tx_done,
@@ -68,9 +68,10 @@ clkdiv_frac #(
 
 wire tx_fifo_wen = tx_valid;
 wire [7:0] tx_fifo_wdata = tx_byte;
-wire tx_fifo_ren = ((!tx_fifo_empty) && clk_en && (tx_state == TX_IDLE || tx_state == TX_STOP));
+wire tx_fifo_ren = ((!tx_fifo_empty) && clk_en && (tx_state == TX_IDLE || tx_state == TX_STOP)
+                    && (!tx_over_ctr));
 wire [7:0] tx_fifo_rdata;
-wire [1:0] tx_fifo_lvl;
+wire [2:0] tx_fifo_lvl;
 wire tx_fifo_full;
 wire tx_fifo_empty;
 
@@ -78,7 +79,7 @@ wire tx_fifo_empty;
 
 sync_fifo #(
     .WIDTH (8),
-    .DEPTH (2)
+    .DEPTH (5)
 ) inst_tx_fifo (
     .clk(clk),
     .rst_n(rst_n_sync),
@@ -114,7 +115,7 @@ always @(posedge clk or negedge rst_n_sync) begin
             case(tx_state)
 
             TX_IDLE: begin
-                if(tx_fifo_lvl == 2'd1) begin
+                if(!tx_fifo_empty) begin
                     tx_shifter <= tx_fifo_rdata;
                     tx <= 1'b0;
                 end
@@ -130,8 +131,8 @@ always @(posedge clk or negedge rst_n_sync) begin
             end
 
             TX_STOP: begin
-                if(tx_valid) begin
-                    tx_shifter <= tx_byte;
+                if(!tx_fifo_empty) begin
+                    tx_shifter <= tx_fifo_rdata;
                     tx <= 1'b0;
                     tx_state <= TX_START;
                 end else begin
@@ -167,7 +168,7 @@ wire din = rx_sync;
 assign rx_valid = (rx_state == (RX_STOP));
 
 wire rx_fifo_full;
-wire rx_fifo_lvl;
+wire [2:0] rx_fifo_lvl;
 wire rx_fifo_empty;
 
 localparam RX_IDLE = 0;
@@ -176,7 +177,7 @@ localparam RX_STOP = 10;
 
 sync_fifo #(
     .WIDTH (8),
-    .DEPTH (2)
+    .DEPTH (5)
 ) inst_rx_fifo (
     .clk(clk),
     .rst_n(rst_n_sync),
@@ -235,13 +236,13 @@ always @(posedge clk or negedge rst_n_sync) begin
 end
 
 
-`ifdef COCOTB_SIM
-initial begin
-  $dumpfile ("uart_test.vcd");
-  $dumpvars (0, uart_core);
-  #1;
-end
-`endif
+// `ifdef COCOTB_SIM
+// initial begin
+//   $dumpfile ("uart_test.vcd");
+//   $dumpvars (0, uart_core);
+//   #1;
+// end
+// `endif
 
 endmodule
 
