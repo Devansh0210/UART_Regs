@@ -158,6 +158,7 @@ always @(posedge clk or negedge rst_n_sync) begin
                     temp_wdata <= 0;
                     cnt_byte <= 0;
                     state <= IDLE;
+                    mem[addr] <= temp_wdata;
                 end
             end
 
@@ -172,20 +173,13 @@ always @(posedge clk or negedge rst_n_sync) begin
 end
 
 
-`ifdef COCOTB_SIM
-initial begin
-  $dumpfile ("uart_test.vcd");
-  $dumpvars (0, uart_regs);
-  #1;
-end
-
 initial begin
     integer i;
     for(i = 0; i < 8; i =i+1) begin
         mem[i] = 32'h12345678;
     end
 end
-`endif
+
 
 
 endmodule
