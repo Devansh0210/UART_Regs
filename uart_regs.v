@@ -9,7 +9,7 @@ module uart_regs #(
     input wire rst_n,
 
     input wire rx,
-    input wire tx,
+    output wire tx,
     input wire [9:0] div_int,
     input wire [3:0] div_frac,
 
@@ -92,7 +92,7 @@ always @(posedge clk or negedge rst_n_sync) begin
         tx_byte <= 0;
         addr <= 0;
         // mem <= 0;
-        cnt_byte <= 2'b0;
+        cnt_byte <= 3'b0;
         temp_wdata <= 0;
     end else begin
 
